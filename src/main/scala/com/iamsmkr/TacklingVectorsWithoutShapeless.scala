@@ -53,8 +53,8 @@ object TacklingVectorsWithoutShapeless extends App {
 
   writer.startList()
   writer.setPosition(1)
-  for (j <- 5 until 10) writer.writeInt(j)
-  writer.setValueCount(5)
+  for (j <- 5 until 20) writer.writeInt(j)
+  writer.setValueCount(15)
   writer.endList()
 
   // set value count
@@ -77,7 +77,7 @@ object TacklingVectorsWithoutShapeless extends App {
   assert(new String(strs.get(0), StandardCharsets.UTF_8) == "One")
   assert(bools.get(0) == 1)
   assert(lists.getObject(0).toArray sameElements Array(0, 1, 2, 3, 4))
-  assert(lists.getObject(1).toArray sameElements Array(5, 6, 7, 8, 9))
+  assert(lists.getObject(1).toArray sameElements Array(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19))
 //  for (i <- 0 until lists.getValueCount)
 //    println(lists.getObject(i).toArray.mkString("Array(", ", ", ")"))
 
