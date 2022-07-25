@@ -15,38 +15,34 @@ object TacklingVectorsWithoutShapeless extends App {
 
   private val schema: Schema =
     new Schema(List(
-      new Field("superStep",  FieldType.notNullable(new ArrowType.Int(32, true)), null),
-      new Field("dstVertexId", FieldType.notNullable(new ArrowType.Int(64, true)), null),
-      new Field("vertexId", FieldType.notNullable(new ArrowType.Int(64, true)), null),
-      new Field("label", FieldType.notNullable(ArrowType.Utf8.INSTANCE), null),
-      new Field("flag", FieldType.notNullable(ArrowType.Bool.INSTANCE), null),
+      new Field("ints",  FieldType.notNullable(new ArrowType.Int(32, true)), null),
+      new Field("longs", FieldType.notNullable(new ArrowType.Int(64, true)), null),
+      new Field("strs", FieldType.notNullable(ArrowType.Utf8.INSTANCE), null),
+      new Field("bools", FieldType.notNullable(ArrowType.Bool.INSTANCE), null),
       new Field("list", FieldType.notNullable(ArrowType.List.INSTANCE),
-        util.Arrays.asList(new Field("elem1",  FieldType.notNullable(new ArrowType.Int(32, true)), null)))
+        util.Arrays.asList(new Field("intelems",  FieldType.notNullable(new ArrowType.Int(32, true)), null)))
     ).asJava)
 
   private val vectorSchemaRoot = VectorSchemaRoot.create(schema, allocator)
 
-  val superSteps = vectorSchemaRoot.getVector("superStep").asInstanceOf[IntVector]
-  val dstVertexIds = vectorSchemaRoot.getVector("dstVertexId").asInstanceOf[BigIntVector]
-  val vertexIds = vectorSchemaRoot.getVector("vertexId").asInstanceOf[BigIntVector]
-  val labels = vectorSchemaRoot.getVector("label").asInstanceOf[VarCharVector]
-  val flags = vectorSchemaRoot.getVector("flag").asInstanceOf[BitVector]
+  val ints = vectorSchemaRoot.getVector("ints").asInstanceOf[IntVector]
+  val longs = vectorSchemaRoot.getVector("longs").asInstanceOf[BigIntVector]
+  val strs = vectorSchemaRoot.getVector("strs").asInstanceOf[VarCharVector]
+  val bools = vectorSchemaRoot.getVector("bools").asInstanceOf[BitVector]
   val lists = vectorSchemaRoot.getVector("list").asInstanceOf[ListVector]
 
   // allocate new buffers
-  superSteps.allocateNew()
-  dstVertexIds.allocateNew()
-  vertexIds.allocateNew()
-  labels.allocateNew()
-  flags.allocateNew()
+  ints.allocateNew()
+  longs.allocateNew()
+  strs.allocateNew()
+  bools.allocateNew()
   lists.allocateNew()
 
   // set values to vectors
-  superSteps.setSafe(0, 1)
-  dstVertexIds.setSafe(0, 1000L)
-  vertexIds.setSafe(0, 1000L)
-  labels.setSafe(0, "One".getBytes)
-  flags.setSafe(0, 1)
+  ints.setSafe(0, 1)
+  longs.setSafe(0, 1000L)
+  strs.setSafe(0, "One".getBytes)
+  bools.setSafe(0, 1)
 
   val writer = lists.getWriter
   writer.startList()
@@ -62,38 +58,34 @@ object TacklingVectorsWithoutShapeless extends App {
   writer.endList()
 
   // set value count
-  superSteps.setValueCount(1)
-  dstVertexIds.setValueCount(1)
-  vertexIds.setValueCount(1)
-  labels.setValueCount(1)
-  flags.setValueCount(1)
+  ints.setValueCount(1)
+  longs.setValueCount(1)
+  strs.setValueCount(1)
+  bools.setValueCount(1)
   lists.setValueCount(2)
 
   // check if values are set against a given row
-  assert(superSteps.isSet(0) == 1)
-  assert(dstVertexIds.isSet(0) == 1)
-  assert(vertexIds.isSet(0) == 1)
-  assert(labels.isSet(0) == 1)
-  assert(flags.isSet(0) == 1)
+  assert(ints.isSet(0) == 1)
+  assert(longs.isSet(0) == 1)
+  assert(strs.isSet(0) == 1)
+  assert(bools.isSet(0) == 1)
   assert(lists.isSet(0) == 1)
 
   // get values against a row
-  assert(superSteps.get(0) == 1)
-  assert(dstVertexIds.get(0) == 1000L)
-  assert(vertexIds.get(0) == 1000L)
-  assert(new String(labels.get(0), StandardCharsets.UTF_8) == "One")
-  assert(flags.get(0) == 1)
+  assert(ints.get(0) == 1)
+  assert(longs.get(0) == 1000L)
+  assert(new String(strs.get(0), StandardCharsets.UTF_8) == "One")
+  assert(bools.get(0) == 1)
   assert(lists.getObject(0).toArray sameElements Array(0, 1, 2, 3, 4))
   assert(lists.getObject(1).toArray sameElements Array(5, 6, 7, 8, 9))
 //  for (i <- 0 until lists.getValueCount)
 //    println(lists.getObject(i).toArray.mkString("Array(", ", ", ")"))
 
   // close resources
-  superSteps.close()
-  dstVertexIds.close()
-  vertexIds.close()
-  labels.close()
-  flags.close()
+  ints.close()
+  longs.close()
+  strs.close()
+  bools.close()
   lists.close()
   vectorSchemaRoot.close()
 }
