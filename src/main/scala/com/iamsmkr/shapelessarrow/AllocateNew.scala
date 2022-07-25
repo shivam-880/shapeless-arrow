@@ -1,6 +1,7 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 trait AllocateNew[T] {
@@ -27,6 +28,9 @@ object AllocateNew {
 
   implicit val bitVectorAllocateNew: AllocateNew[BitVector] =
     AllocateNew.instance[BitVector](_.allocateNew())
+
+  implicit val listVectorAllocateNew: AllocateNew[ListVector] =
+    AllocateNew.instance[ListVector](_.allocateNew())
 
   implicit def hNilAllocateNew: AllocateNew[HNil] =
     AllocateNew.instance[HNil](_ => ())

@@ -1,6 +1,7 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 trait SetValueCount[T] {
@@ -28,6 +29,9 @@ object SetValueCount {
 
   implicit val bitVectorSetValueCount: SetValueCount[BitVector] =
     SetValueCount.instance[BitVector] { case (vector, rows) => vector.setValueCount(rows) }
+
+  implicit val listVectorSetValueCount: SetValueCount[ListVector] =
+    SetValueCount.instance[ListVector] { case (vector, rows) => vector.setValueCount(rows) }
 
   implicit def hNilSetValueCount: SetValueCount[HNil] =
     SetValueCount.instance[HNil] { case (vector, rows) => () }

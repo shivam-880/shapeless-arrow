@@ -1,6 +1,7 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 trait SetSafe[T, R] {
@@ -28,6 +29,16 @@ object SetSafe {
 
   implicit val bitVectorSetSafe: SetSafe[BitVector, Boolean] =
     SetSafe.instance[BitVector, Boolean] { case (vector, row, value) => vector.setSafe(row, if (value) 1 else 0) }
+
+  implicit val listVectorSetSafe: SetSafe[ListVector, List[Int]] =
+    SetSafe.instance[ListVector, List[Int]] { case (vector, row, value) =>
+      val writer = vector.getWriter
+      writer.startList()
+      writer.setPosition(row)
+      for (j <- value.indices) writer.writeInt(value(j))
+      writer.setValueCount(value.size)
+      writer.endList()
+    }
 
   implicit def hNilSetSafe: SetSafe[HNil, HNil] =
     SetSafe.instance[HNil, HNil] { case (vector, row, value) => () }

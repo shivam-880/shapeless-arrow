@@ -1,6 +1,7 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 trait Close[T] {
@@ -27,6 +28,9 @@ object Close {
 
   implicit val bitVectorGet: Close[BitVector] =
     Close.instance[BitVector](_.close())
+
+  implicit val listVectorGet: Close[ListVector] =
+    Close.instance[ListVector](_.close())
 
   implicit def hNilClose: Close[HNil] = Close.instance[HNil](_ => ())
 

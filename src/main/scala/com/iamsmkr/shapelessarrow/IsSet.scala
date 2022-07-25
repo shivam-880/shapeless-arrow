@@ -1,6 +1,7 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 trait IsSet[T] {
@@ -28,6 +29,9 @@ object IsSet {
 
   implicit val bitVectorIsSet: IsSet[BitVector] =
     IsSet.instance[BitVector] { case (vector, row) => List(vector.isSet(row)) }
+
+  implicit val listVectorIsSet: IsSet[ListVector] =
+    IsSet.instance[ListVector] { case (vector, row) => List(vector.isSet(row)) }
 
   implicit def hNilSetValueCount: IsSet[HNil] =
     IsSet.instance[HNil] { case (vector, row) => Nil }

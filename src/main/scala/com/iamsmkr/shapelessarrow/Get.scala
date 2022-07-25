@@ -1,9 +1,11 @@
 package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
+import org.apache.arrow.vector.complex.ListVector
 import shapeless.{::, Generic, HList, HNil}
 
 import java.nio.charset.StandardCharsets
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 trait Get[T, R] {
@@ -54,6 +56,11 @@ object Get {
 
   implicit val bitVectorGet: Get[BitVector, Boolean] =
     Get.instance[BitVector, Boolean] { case (vector, row, value) => if (vector.get(row) == 1) true else false }
+
+  implicit val listVectorGet: Get[ListVector, List[Int]] =
+    Get.instance[ListVector, List[Int]] { case (vector, row, value) =>
+      vector.getObject(row).asScala.toList.asInstanceOf[List[Int]]
+    }
 
   implicit def hNilGet: Get[HNil, HNil] =
     Get.instance[HNil, HNil] { case (vector, row, value) => HNil }
