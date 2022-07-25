@@ -40,6 +40,19 @@ object SetSafe {
       writer.endList()
     }
 
+  implicit val boollistVectorSetSafe: SetSafe[ListVector, List[Boolean]] =
+    SetSafe.instance[ListVector, List[Boolean]] { case (vector, row, value) =>
+      val writer = vector.getWriter
+      writer.startList()
+      writer.setPosition(row)
+      for (j <- value.indices) {
+        if (value(j)) writer.writeBit(1)
+        else writer.writeBit(0)
+      }
+      writer.setValueCount(value.size)
+      writer.endList()
+    }
+
   implicit def hNilSetSafe: SetSafe[HNil, HNil] =
     SetSafe.instance[HNil, HNil] { case (vector, row, value) => () }
 

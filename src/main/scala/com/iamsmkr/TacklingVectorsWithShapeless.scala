@@ -20,7 +20,9 @@ object TacklingVectorsWithShapeless extends App {
       new Field("strs", new FieldType(false, new ArrowType.Utf8(), null), null),
       new Field("bools", new FieldType(false, new ArrowType.Bool(), null), null),
       new Field("list", FieldType.notNullable(ArrowType.List.INSTANCE),
-        util.Arrays.asList(new Field("elem1", FieldType.notNullable(new ArrowType.Int(32, true)), null)))
+        util.Arrays.asList(new Field("intelems", FieldType.notNullable(new ArrowType.Int(32, true)), null))),
+      new Field("boollist", FieldType.notNullable(ArrowType.List.INSTANCE),
+        util.Arrays.asList(new Field("boolelems", FieldType.notNullable(ArrowType.Bool.INSTANCE), null)))
     ).asJava)
 
   private val vectorSchemaRoot = VectorSchemaRoot.create(schema, allocator)
@@ -30,13 +32,15 @@ object TacklingVectorsWithShapeless extends App {
   val strs = vectorSchemaRoot.getVector("strs").asInstanceOf[VarCharVector]
   val bools = vectorSchemaRoot.getVector("bools").asInstanceOf[BitVector]
   val list = vectorSchemaRoot.getVector("list").asInstanceOf[ListVector]
+  val boollist = vectorSchemaRoot.getVector("boollist").asInstanceOf[ListVector]
 
   case class MixArrowFlightMessage(
                                     int: Int = 0,
                                     long: Long = 0L,
                                     str: String = "",
                                     bool: Boolean = false,
-                                    list: List[Int] = Nil
+                                    list: List[Int] = Nil,
+                                    boolist: List[Boolean] = Nil
                                   )
 
   case class MixArrowFlightMessageVectors(
@@ -44,7 +48,8 @@ object TacklingVectorsWithShapeless extends App {
                                            longs: BigIntVector,
                                            strs: VarCharVector,
                                            bools: BitVector,
-                                           list: ListVector
+                                           list: ListVector,
+                                           boollist: ListVector
                                          )
 
   private val vectors =
@@ -53,7 +58,8 @@ object TacklingVectorsWithShapeless extends App {
       longs,
       strs,
       bools,
-      list
+      list,
+      boollist
     )
 
   private val mixMessage =
@@ -62,7 +68,8 @@ object TacklingVectorsWithShapeless extends App {
       2000L,
       "One",
       true,
-      List(1, 2, 3, 4, 5)
+      List(1, 2, 3, 4, 5),
+      List(true, false)
     )
 
   // allocate new buffers

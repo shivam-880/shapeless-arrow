@@ -62,6 +62,11 @@ object Get {
       vector.getObject(row).asScala.toList.asInstanceOf[List[Int]]
     }
 
+  implicit val boollistVectorGet: Get[ListVector, List[Boolean]] =
+    Get.instance[ListVector, List[Boolean]] { case (vector, row, value) =>
+      vector.getObject(row).asScala.toList.asInstanceOf[List[Boolean]]
+    }
+
   implicit def hNilGet: Get[HNil, HNil] =
     Get.instance[HNil, HNil] { case (vector, row, value) => HNil }
 
