@@ -2,6 +2,7 @@ package com.iamsmkr.shapelessarrow
 
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.ListVector
+import org.apache.arrow.vector.complex.impl.UnionListWriter
 import shapeless.{::, Generic, HList, HNil}
 
 trait SetSafe[T, R] {
@@ -18,6 +19,13 @@ object SetSafe {
         func(vector, row, value)
     }
 
+  implicit class FetchWriter[A <: ListVector](value: A) {
+    def getListVectorWriter(vector: ListVector): UnionListWriter = {
+      listVectorToWriter.putIfAbsent(vector, value.getWriter)
+      listVectorToWriter.get(vector)
+    }
+  }
+
   implicit val intVectorSetSafe: SetSafe[IntVector, Int] =
     SetSafe.instance[IntVector, Int] { case (vector, row, value) => vector.setSafe(row, value) }
 
@@ -32,24 +40,22 @@ object SetSafe {
 
   implicit val listVectorSetSafe: SetSafe[ListVector, List[Int]] =
     SetSafe.instance[ListVector, List[Int]] { case (vector, row, value) =>
-      val writer = vector.getWriter
+      val writer = vector.getListVectorWriter(vector)
       writer.startList()
       writer.setPosition(row)
       for (j <- value.indices) writer.writeInt(value(j))
-      writer.setValueCount(value.size)
       writer.endList()
     }
 
   implicit val boollistVectorSetSafe: SetSafe[ListVector, List[Boolean]] =
     SetSafe.instance[ListVector, List[Boolean]] { case (vector, row, value) =>
-      val writer = vector.getWriter
+      val writer = vector.getListVectorWriter(vector)
       writer.startList()
       writer.setPosition(row)
       for (j <- value.indices) {
         if (value(j)) writer.writeBit(1)
         else writer.writeBit(0)
       }
-      writer.setValueCount(value.size)
       writer.endList()
     }
 

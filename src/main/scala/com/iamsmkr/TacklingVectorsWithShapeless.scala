@@ -78,8 +78,18 @@ object TacklingVectorsWithShapeless extends App {
   // set values to vectors
   SetSafe[MixArrowFlightMessageVectors, MixArrowFlightMessage].setSafe(vectors, 0, mixMessage)
 
+  SetSafe[MixArrowFlightMessageVectors, MixArrowFlightMessage].setSafe(vectors, 1,
+    MixArrowFlightMessage(
+      1000,
+      3000L,
+      "Two",
+      false,
+      List(11, 12, 13, 14, 15),
+      List(false, true)
+    ))
+
   // set value count
-  SetValueCount[MixArrowFlightMessageVectors].setValueCount(vectors, 1)
+  SetValueCount[MixArrowFlightMessageVectors].setValueCount(vectors, 2)
 
   // check if values are set against a given row
   assert(IsSet[MixArrowFlightMessageVectors].isSet(vectors, 0).forall(_ == 1))
@@ -87,6 +97,9 @@ object TacklingVectorsWithShapeless extends App {
   // get values against a row
   val encoded = Get[MixArrowFlightMessageVectors, MixArrowFlightMessage].invokeGet(vectors, 0)
   assert(encoded == mixMessage)
+
+  println(encoded)
+  println(Get[MixArrowFlightMessageVectors, MixArrowFlightMessage].invokeGet(vectors, 1))
 
   // close resources
   Close[MixArrowFlightMessageVectors].close(vectors)

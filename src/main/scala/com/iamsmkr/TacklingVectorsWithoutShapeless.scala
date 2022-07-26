@@ -48,13 +48,14 @@ object TacklingVectorsWithoutShapeless extends App {
   writer.startList()
   writer.setPosition(0)
   for (j <- 0 until 5) writer.writeInt(j)
-  writer.setValueCount(5)
+//  writer.setValueCount(5)
   writer.endList()
 
+  // IMPORTANT! You must use the same writer to add another list to subsequent rows in a given ListVector
   writer.startList()
   writer.setPosition(1)
   for (j <- 5 until 20) writer.writeInt(j)
-  writer.setValueCount(15)
+//  writer.setValueCount(15)
   writer.endList()
 
   // set value count
@@ -78,6 +79,7 @@ object TacklingVectorsWithoutShapeless extends App {
   assert(bools.get(0) == 1)
   assert(lists.getObject(0).toArray sameElements Array(0, 1, 2, 3, 4))
   assert(lists.getObject(1).toArray sameElements Array(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19))
+  println(lists.getObject(0).asScala.toSet.asInstanceOf[Set[Int]])
 //  for (i <- 0 until lists.getValueCount)
 //    println(lists.getObject(i).toArray.mkString("Array(", ", ", ")"))
 

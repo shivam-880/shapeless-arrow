@@ -29,8 +29,10 @@ object Close {
   implicit val bitVectorGet: Close[BitVector] =
     Close.instance[BitVector](_.close())
 
-  implicit val listVectorGet: Close[ListVector] =
+  implicit val listVectorGet: Close[ListVector] = {
+    listVectorToWriter.clear()
     Close.instance[ListVector](_.close())
+  }
 
   implicit def hNilClose: Close[HNil] = Close.instance[HNil](_ => ())
 
