@@ -8,5 +8,7 @@ libraryDependencies ++= Seq(
   "org.apache.arrow" % "arrow-vector" % "8.0.0",
   "org.apache.arrow" % "arrow-memory-netty" % "8.0.0" % "runtime",
   "org.scala-lang" % "scala-reflect" % "2.13.8",
-  "com.chuusai" %% "shapeless" % "2.3.3"
+  "com.chuusai" %% "shapeless" % "2.3.3",
+  "com.esotericsoftware" % "kryo" % "5.3.0",
+  "com.twitter" %% "chill" % "0.10.0"
 )

@@ -1,5 +1,7 @@
 package com.iamsmkr
 
+import com.esotericsoftware.kryo._
+import com.twitter.chill._
 import org.apache.arrow.memory._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.ListVector
@@ -11,6 +13,16 @@ import scala.jdk.CollectionConverters._
 
 object TacklingVectorsWithoutShapeless extends App {
 
+  private val kryo = new Kryo()
+
+  def serialise[T](value: T): Array[Byte] = kryo.toBytesWithClass(value)
+
+  /** deserialise byte array to object
+   * @param bytes byte array to de-serialise
+   */
+  def deserialise[T](bytes: Array[Byte]): T =
+    kryo.fromBytes(bytes).asInstanceOf[T]
+
   private val allocator: BufferAllocator = new RootAllocator()
 
   private val schema: Schema =
@@ -20,7 +32,8 @@ object TacklingVectorsWithoutShapeless extends App {
       new Field("strs", FieldType.notNullable(ArrowType.Utf8.INSTANCE), null),
       new Field("bools", FieldType.notNullable(ArrowType.Bool.INSTANCE), null),
       new Field("list", FieldType.notNullable(ArrowType.List.INSTANCE),
-        util.Arrays.asList(new Field("intelems",  FieldType.notNullable(new ArrowType.Int(32, true)), null)))
+        java.util.Arrays.asList(new Field("intelems",  FieldType.notNullable(new ArrowType.Int(32, true)), null))),
+      new Field("bytes", FieldType.notNullable(ArrowType.Binary.INSTANCE), null)
     ).asJava)
 
   private val vectorSchemaRoot = VectorSchemaRoot.create(schema, allocator)
@@ -30,6 +43,7 @@ object TacklingVectorsWithoutShapeless extends App {
   val strs = vectorSchemaRoot.getVector("strs").asInstanceOf[VarCharVector]
   val bools = vectorSchemaRoot.getVector("bools").asInstanceOf[BitVector]
   val lists = vectorSchemaRoot.getVector("list").asInstanceOf[ListVector]
+  val bytes = vectorSchemaRoot.getVector("bytes").asInstanceOf[VarBinaryVector]
 
   // allocate new buffers
   ints.allocateNew()
@@ -37,6 +51,7 @@ object TacklingVectorsWithoutShapeless extends App {
   strs.allocateNew()
   bools.allocateNew()
   lists.allocateNew()
+  bytes.allocateNew()
 
   // set values to vectors
   ints.setSafe(0, 1)
@@ -58,12 +73,15 @@ object TacklingVectorsWithoutShapeless extends App {
 //  writer.setValueCount(15)
   writer.endList()
 
+  bytes.set(0, "Pometry".getBytes)
+
   // set value count
   ints.setValueCount(1)
   longs.setValueCount(1)
   strs.setValueCount(1)
   bools.setValueCount(1)
   lists.setValueCount(2)
+  bytes.setValueCount(1)
 
   // check if values are set against a given row
   assert(ints.isSet(0) == 1)
@@ -71,6 +89,7 @@ object TacklingVectorsWithoutShapeless extends App {
   assert(strs.isSet(0) == 1)
   assert(bools.isSet(0) == 1)
   assert(lists.isSet(0) == 1)
+  assert(bytes.isSet(0) == 1)
 
   // get values against a row
   assert(ints.get(0) == 1)
@@ -82,6 +101,7 @@ object TacklingVectorsWithoutShapeless extends App {
   println(lists.getObject(0).asScala.toSet.asInstanceOf[Set[Int]])
 //  for (i <- 0 until lists.getValueCount)
 //    println(lists.getObject(i).toArray.mkString("Array(", ", ", ")"))
+  assert(new String(bytes.get(0), StandardCharsets.UTF_8) == "Pometry")
 
   // close resources
   ints.close()
@@ -89,5 +109,48 @@ object TacklingVectorsWithoutShapeless extends App {
   strs.close()
   bools.close()
   lists.close()
+  bytes.close()
   vectorSchemaRoot.close()
+}
+
+class KryoSerialiser {
+  private val kryo: KryoPool = ScalaKryoMaker.defaultPool
+
+  /** serialise value to byte array
+   * @param value value to serialise
+   */
+  def serialise[T](value: T): Array[Byte] = kryo.toBytesWithClass(value)
+
+  /** deserialise byte array to object
+   * @param bytes byte array to de-serialise
+   */
+  def deserialise[T](bytes: Array[Byte]): T =
+    kryo.fromBytes(bytes).asInstanceOf[T]
+}
+
+object KryoSerialiser {
+
+  def apply(): KryoSerialiser =
+    new KryoSerialiser()
+}
+
+private object ScalaKryoMaker extends Serializable {
+  private val mutex                      = new AnyRef with Serializable // some serializable object
+  @transient private var kpool: KryoPool = null
+
+  /**
+   * Return a KryoPool that uses the ScalaKryoInstantiator
+   */
+  def defaultPool: KryoPool =
+    mutex.synchronized {
+      if (null == kpool)
+        kpool = KryoPool.withByteArrayOutputStream(guessThreads, new KryoInstantiator)
+      kpool
+    }
+
+  private def guessThreads: Int = {
+    val cores                  = Runtime.getRuntime.availableProcessors
+    val GUESS_THREADS_PER_CORE = 4
+    GUESS_THREADS_PER_CORE * cores
+  }
 }
